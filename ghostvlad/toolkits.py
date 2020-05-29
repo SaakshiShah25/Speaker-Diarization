@@ -1,14 +1,16 @@
 import os
 import numpy as np
 
+
 def initialize_GPU(args):
     # Initialize GPUs
     import tensorflow as tf
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    session = tf.Session(config=config)
+    session = tf.compat.v1.Session(config=config)
     return session
+
 
 def get_chunks(l, n):
     # For item i in a range that is a length of l,
@@ -21,9 +23,9 @@ def debug_generator(generator):
     import cv2
     import pdb
     G = generator.next()
-    for i,img in enumerate(G[0]):
+    for i, img in enumerate(G[0]):
         path = '../sample/{}.jpg'.format(i)
-        img = np.asarray(img[:,:,::-1] + 128.0, dtype='uint8')
+        img = np.asarray(img[:, :, ::-1] + 128.0, dtype='uint8')
         cv2.imwrite(path, img)
 
 
@@ -97,7 +99,8 @@ def get_imagenet_imglist(args, trn_meta_path='', val_meta_path=''):
 def get_voxceleb2_datalist(args, path):
     with open(path) as f:
         strings = f.readlines()
-        audiolist = np.array([os.path.join(args.data_path, string.split()[0]) for string in strings])
+        audiolist = np.array(
+            [os.path.join(args.data_path, string.split()[0]) for string in strings])
         labellist = np.array([int(string.split()[1]) for string in strings])
         f.close()
     return audiolist, labellist
@@ -111,7 +114,7 @@ def calculate_eer(y, y_score):
     from scipy.interpolate import interp1d
 
     fpr, tpr, thresholds = roc_curve(y, y_score, pos_label=1)
-    eer = brentq(lambda x : 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+    eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
     thresh = interp1d(fpr, thresholds)(eer)
     return eer, thresh
 
